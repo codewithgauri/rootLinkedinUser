@@ -22,11 +22,9 @@ const db = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
-// Define models
 db.User = UserModel(sequelize, Sequelize);
 db.Subscription = SubscriptionModel(sequelize, Sequelize);
 
-// Synchronize models without force: true
 db.sequelize.sync()
   .then(() => {
     console.log('Tables synced successfully.');

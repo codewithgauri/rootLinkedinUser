@@ -16,6 +16,12 @@ module.exports = (sequelize, Sequelize) => {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    token: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+
+    },
     price: {
       type: DataTypes.FLOAT,
       allowNull: false,

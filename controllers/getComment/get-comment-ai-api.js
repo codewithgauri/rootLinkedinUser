@@ -1,5 +1,8 @@
 const db = require('../../models/index');
 const axios = require('axios');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const generateComment = async (req, res) => {
     try {
@@ -17,23 +20,23 @@ const generateComment = async (req, res) => {
         }
 
         const { id, subscriptionId } = user;
-
-        // Check if there is an active subscription for the user
         const activeSubscription = await db.Subscription.findOne({
             where: {
                 id: subscriptionId,
                 isActive: true,
+                token: {
+                    [db.Sequelize.Op.gt]: 0, 
+                },
             },
         });
 
         if (!activeSubscription) {
-            return res.status(400).json({ error: 'User does not have an active subscription' });
+            return res.status(400).json({ error: 'User does not have an active subscription or has no tokens remaining' });
         }
 
-        const { providerKey } = activeSubscription;
+        const { providerKey, token } = activeSubscription;
 
-        // Use the obtained providerKey to make a request to the Google Gemini API
-        const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${providerKey}`;
+        const geminiApiUrl = `${process.env.GEMINI_API_ENDPOINT}?key=${providerKey}`;
 
         const geminiApiResponse = await axios.post(geminiApiUrl, {
             contents: [
@@ -52,8 +55,11 @@ const generateComment = async (req, res) => {
             return res.status(500).json({ error: 'Error from Gemini API', details: geminiApiResponse.data.error });
         }
 
-        const generatedComment = geminiApiResponse.data;
+        await activeSubscription.update({
+            token: token - 1,
+        });
 
+        const generatedComment = geminiApiResponse.data;
         res.status(200).json({ generatedComment });
     } catch (error) {
         console.error('Error generating comment:', error);

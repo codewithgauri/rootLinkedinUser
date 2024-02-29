@@ -2,7 +2,7 @@ const db = require('../../models/index');
 
 const createSubscription = async (req, res) => {
   try {
-    const { planName, validity, price, providerKey, validFrom, validUpto, userId } = req.body;
+    const { planName, validity, price, providerKey, validFrom, validUpto, userId, token } = req.body;
 
     const activeSubscription = await db.Subscription.findOne({
       where: {
@@ -24,6 +24,7 @@ const createSubscription = async (req, res) => {
       validUpto,
       isActive: true,
       userId,
+      token
     });
 
     res.status(201).json(newSubscription);
